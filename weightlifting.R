@@ -1,5 +1,4 @@
 
-# Loading appropiate libraries
 library(caret)
 library(kernlab)
 library(AppliedPredictiveModeling)
@@ -11,20 +10,19 @@ library(randomForest)
 # Load datasets
 training <- read.csv("/Users/Srinivas/Desktop/pml-training.csv", header=TRUE, sep=",",
                      stringsAsFactors=FALSE)
-testing  <- read.csv("/Users/Srinivas/Desktop/pml-training.csv", header=TRUE, sep=",",
+testing  <- read.csv("/Users/Srinivas/Desktop/pml-testing.csv", header=TRUE, sep=",",
                      stringsAsFactors=FALSE)
 
-#Summary of Data
+# Some analysis
 str(training)
 summary(training)
 
-
+# Classe class
 table(training$classe)
 table(testing$classe)
 summary(training$classe)
 str(training$classe)
 
-#Histogran and Feature Plot
 hist(as.numeric(as.factor(training$classe)))
 boxplot(as.numeric(as.factor(training$classe)))
 featurePlot(x=training[,c("user_name","new_window","num_window", "X")],
@@ -41,14 +39,18 @@ classes2 <- sapply(testing[1,], class)
 table(classes2)
 
 # Change some classes
-training$classe <- as.factor(training$classe)
-training$user_name<- as.factor(training$user_name)
-training$new_window <- factor(training$new_window, labels=c("no", "yes"), 
+training$classe         <- as.factor(training$classe)
+training$user_name      <- as.factor(training$user_name)
+training$new_window     <- factor(training$new_window, labels=c("no", "yes"), 
                                   levels=c("no", "yes"))
+# training$cvtd_timestamp <- as.POSIXct(strptime(training$cvtd_timestamp, 
+#                                                "%d/%m/%Y %H:%M"))
 
-testing$user_name <- as.factor(testing$user_name)
-testing$new_window <- factor(testing$new_window, labels=c("no", "yes"), 
+testing$user_name      <- as.factor(testing$user_name)
+testing$new_window     <- factor(testing$new_window, labels=c("no", "yes"), 
                                  levels=c("no", "yes"))
+# testing$cvtd_timestamp <- as.POSIXct(strptime(testing$cvtd_timestamp, 
+#                                               "%d/%m/%Y %H:%M"))
 
 classes1 <- sapply(training[1,], class)
 table(classes1)
@@ -65,7 +67,6 @@ for (i in 1:34) {
   print(table(training[, classes_character[i]]))
 }
 
-#Handling NA and Inf Values
 for (i in 2:34) {
   training[, classes_character[i]][training[, classes_character[i]]==""] <- NA
   training[, classes_character[i]][training[, classes_character[i]]=="#DIV/0!"] <- Inf
@@ -126,6 +127,7 @@ save(testing,  file="testing.RData")
 
 # Extract variables with values not NA in a new DF
 mean0 <- sapply(training, mean)
+# training_mod <- training[, na.omit(names(mean0)[as.integer(as.numeric(!(mean0=="NA"))==1]]
 training_mod <- training[, na.omit(names(mean0)[as.numeric(!(mean0=="NA"))==1])]
 testing_mod <-  testing[, names(training_mod)]
 
@@ -135,6 +137,7 @@ testing_mod$user_name  <- testing$user_name
 training_mod$classe    <- training$classe
 
 # Complete DF with training and testing data. We change classe variable to numeric
+# Values of test set are classe = 6
 temp <- training
 temp$classe <- as.numeric(temp$classe)
 temp2 <- testing
@@ -149,6 +152,7 @@ rm(temp2)
 
 names(all)
 
+# One DF only with 4 columns 
 minimum <- all[, c(2, 5, 6, 160)]
 
 minimum$cvtd_timestamp <- as.POSIXct(strptime(minimum$cvtd_timestamp, "%d/%m/%Y %H:%M"))
@@ -176,7 +180,7 @@ str(pca.out)
 pca.out$rotation
 names(pca.out)
 
-# Correlation Only numeric variables
+# Correlation. Only numeric variables
 M_cor <- abs(cor(training[,-c(2, 5, 6, 160)]))
 M_cor
 diag(M_cor) <- 0
@@ -196,7 +200,7 @@ testing_mod3 <- testing[, new_names]
 testing_mod3$cvtd_timestamp <- testing$cvtd_timestamp
 testing_mod3$classe         <- testing$classe
 
-# Models. We use the training_mod3 dataset with relevant feature.
+# Models. We use the training_mod3 dataset. 57 + classe variables
 
 # Random Forest
 model30 <- train(classe ~., method="rf", preProcess=c("center", "scale"),
@@ -238,14 +242,13 @@ print(model34)
 pred34
 confusionMatrix(pred34_train, training_mod3$classe)
 
-##################
+
 
 # Divide each of these 4 sets into training (60%) and test (40%) sets.
 set.seed(666)
 inTrain <- createDataPartition(y=training_mod3$classe, p=0.6, list=FALSE)
 df_small_training1 <- training_mod3[inTrain,]
 df_small_testing1 <- training_mod3[-inTrain,]
-View(df_small_training1)
 
 #Random Forest
 model30 <- train(classe ~., method="rf", preProcess=c("center", "scale"),
@@ -289,7 +292,9 @@ confusionMatrix(pred34_train, df_small_training1$classe)
 
 
 #Decision Tree Graph
+
 library(rpart)
+# grow tree 
 fit <- rpart(classe ~., method="class",data=training_mod3 )
 
 # plot tree 
