@@ -1,5 +1,5 @@
 # MachineLearningProject
-Qualitative Activity Recognition using weight Lifting Exercise.
+Qualitative Activity Recognition using weight Lifting Exercise
 
 Project Description
 
