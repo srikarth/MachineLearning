@@ -11,6 +11,8 @@ DataSet
 Training set (19,622 entries) and testing set (20 entries) on 160 attributes.
 I have reduced the same to 40 attributes mainly by removing irrelevant attributes using PCA and zero or near to zero Covariance.
 
+https://archive.ics.uci.edu/ml/datasets/Weight+Lifting+Exercises+monitored+with+Inertial+Measurement+Units
+
 Algorithms Used
 
 Random Forest, Decision Tree(C5), Support Vector Machine(Linear/Radial)
